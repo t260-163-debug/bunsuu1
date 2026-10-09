@@ -3,10 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>
- <meta property="og:title" content="分数クイズ">
- <meta property="og:description" content="分数の様々な問題が解けるクイズです。">
- <meta property="og:type" content="website"></title>
+<title>たんいぶんすう クイズ！</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -33,26 +30,35 @@
   .progress {
     font-size: 16px;
     color: #666;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     font-weight: bold;
   }
-  /* テープ図のスタイル */
-  .tape-container {
-    margin: 25px 0;
+  
+  /* 表示エリア */
+  .visual-container {
+    margin: 15px 0;
     background: #f8f9fa;
     padding: 15px;
-    border-radius: 12px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 160px;
+    justify-content: center;
   }
-  .tape-label {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 8px;
-    text-align: left;
+  .visual-label {
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: bold;
   }
+
+  /* 1. テープ図 */
   .tape {
     display: flex;
     width: 100%;
-    height: 60px;
+    max-width: 420px;
+    height: 55px;
     border: 3px solid #333;
     border-radius: 8px;
     overflow: hidden;
@@ -64,42 +70,110 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: bold;
-    color: #666;
-    transition: all 0.3s;
+    color: #555;
   }
-  .tape-part:last-child {
-    border-right: none;
+  .tape-part:last-child { border-right: none; }
+  .tape-part.active { background-color: #ffd166; color: #d00000; }
+
+  /* 2. 水（1Lビーカー） */
+  .beaker-outer {
+    position: relative;
+    width: 120px;
+    height: 140px;
+    border: 4px solid #444;
+    border-top: none;
+    border-radius: 0 0 16px 16px;
+    background: #eaf8ff;
+    display: flex;
+    flex-direction: column-reverse; /* 下から水を溜める */
+    overflow: hidden;
   }
-  .tape-part.active {
-    background-color: #ffd166;
-    color: #d00000;
+  .water-part {
+    flex: 1;
+    border-top: 2px dashed #0096c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: #0077b6;
+  }
+  .water-part:last-child { border-top: none; }
+  .water-part.active { background-color: #48cae4; color: #03045e; }
+
+  /* 3. 数直線 */
+  .number-line-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 10px 20px 25px 20px;
+    position: relative;
+  }
+  .number-line-bar {
+    position: relative;
+    height: 8px;
+    background: #ccc;
+    border-radius: 4px;
+    margin-top: 25px;
+  }
+  .number-line-fill {
+    position: absolute;
+    height: 100%;
+    background: #ff6b6b;
+    border-radius: 4px;
+    top: 0;
+    left: 0;
+  }
+  .number-line-tick {
+    position: absolute;
+    width: 3px;
+    height: 18px;
+    background: #333;
+    top: -5px;
+    transform: translateX(-50%);
+  }
+  .number-line-text {
+    position: absolute;
+    top: 18px;
+    transform: translateX(-50%);
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
   }
 
   /* 問題文と分数表示 */
   .question-box {
-    font-size: 22px;
-    margin: 20px 0;
+    font-size: 20px;
+    margin: 15px 0;
     font-weight: bold;
-    line-height: 2;
+    line-height: 1.8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 85px;
+  }
+  .question-text {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
   }
   .blank {
-    display: inline-block;
-    width: 60px;
-    height: 45px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    height: 44px;
     border: 3px dashed #ff6b6b;
     border-radius: 8px;
     color: #ff6b6b;
-    font-size: 28px;
-    line-height: 40px;
-    text-align: center;
+    font-size: 24px;
     background: #fff0f0;
+    padding: 0 6px;
   }
   .frac {
     display: inline-flex;
@@ -113,40 +187,70 @@
   .frac .top { border-bottom: 2px solid #333; padding: 0 4px; }
   .frac .bottom { padding: 0 4px; }
 
+  /* 2ステップ問題用の分数組み立て枠 */
+  .builder-box {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    border: 3px solid #333;
+    border-radius: 12px;
+    padding: 6px 16px;
+    background: #fff;
+    margin-top: 5px;
+  }
+  .builder-part {
+    min-width: 45px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+  }
+  .builder-top { border-bottom: 3px solid #333; }
+  .builder-target {
+    background-color: #ffe3e3;
+    border: 2px dashed #ff6b6b;
+    color: #ff6b6b;
+    border-radius: 6px;
+  }
+
   /* 選択肢ボタン */
   .choices {
     display: flex;
     justify-content: center;
     gap: 12px;
     flex-wrap: wrap;
-    margin-top: 20px;
+    margin-top: 10px;
+    min-height: 60px;
   }
   .btn-choice {
     background-color: #4ecdc4;
     color: white;
     border: none;
-    padding: 12px 24px;
-    font-size: 24px;
+    padding: 10px 20px;
+    font-size: 22px;
     border-radius: 16px;
     cursor: pointer;
     box-shadow: 0 5px #3bbaa0;
     font-weight: bold;
-    min-width: 80px;
+    min-width: 75px;
     transition: transform 0.1s, box-shadow 0.1s;
   }
   .btn-choice:active {
     transform: translateY(4px);
     box-shadow: 0 1px #3bbaa0;
   }
+  .btn-choice:disabled { opacity: 0.6; cursor: not-allowed; }
 
   /* 結果表示 */
   .result {
-    font-size: 28px;
-    height: 45px;
-    margin-top: 15px;
+    font-size: 26px;
+    height: 38px;
+    margin-top: 10px;
     font-weight: bold;
   }
-  .btn-next {
+  .btn-restart {
     background-color: #ff6b6b;
     color: white;
     border: none;
@@ -154,7 +258,7 @@
     font-size: 20px;
     border-radius: 30px;
     cursor: pointer;
-    margin-top: 10px;
+    margin-top: 15px;
     box-shadow: 0 4px #d9534f;
     font-weight: bold;
     display: none;
@@ -167,9 +271,9 @@
   <h1>ぶんすう クイズ 🧩</h1>
   <div class="progress" id="progress">だい 1 もん / 5 もん</div>
 
-  <div class="tape-container">
-    <div class="tape-label">１ｍの テープ：</div>
-    <div class="tape" id="tape"></div>
+  <div class="visual-container">
+    <div class="visual-label" id="visual-label"></div>
+    <div id="visual-content"></div>
   </div>
 
   <div class="question-box" id="question"></div>
@@ -177,11 +281,10 @@
   <div class="choices" id="choices"></div>
 
   <div class="result" id="result"></div>
-  <button class="btn-next" id="btn-next" onclick="nextQuestion()">つぎの問題へ ➔</button>
+  <button class="btn-restart" id="btn-restart" onclick="startNewGame()">もういちど あそぶ 🔄</button>
 </div>
 
 <script>
-// Web Audio API による効果音生成
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSound(type) {
   if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -194,9 +297,15 @@ function playSound(type) {
     osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
     osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
     gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
     osc.start();
-    osc.stop(audioCtx.currentTime + 0.4);
+    osc.stop(audioCtx.currentTime + 0.35);
+  } else if (type === 'step') {
+    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.2);
   } else {
     osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(180, audioCtx.currentTime);
@@ -208,109 +317,323 @@ function playSound(type) {
   }
 }
 
-// 分数HTMLをつくる関数
 function makeFracHTML(num, den) {
   return `<span class="frac"><span class="top">${num}</span><span class="bottom">${den}</span></span>`;
 }
 
-// 問題データ
-const quizData = [
-  {
-    totalParts: 3,
-    activeParts: 2,
-    // 「 1/3 が [ ? ] 個で 2/3 」
-    questionText: (unitFrac, targetFrac) => `${unitFrac} が <span class="blank">?</span> 個で ${targetFrac}`,
-    answer: "2",
-    choices: ["1", "2", "3", "4"]
-  },
-  {
-    totalParts: 4,
-    activeParts: 3,
-    // 「 1/4 が 3 個で [ ? ] 」
-    questionText: (unitFrac, targetFrac) => `${unitFrac} が 3 個で <span class="blank">?</span>`,
-    answer: "3/4",
-    choices: ["1/4", "2/4", "3/4", "4/4"]
-  },
-  {
-    totalParts: 5,
-    activeParts: 4,
-    // 「 4/5 は 1/5 が [ ? ] 個 」
-    questionText: (unitFrac, targetFrac) => `${targetFrac} は ${unitFrac} が <span class="blank">?</span> 個`,
-    answer: "4",
-    choices: ["2", "3", "4", "5"]
-  },
-  {
-    totalParts: 6,
-    activeParts: 5,
-    // 「 1/6 が [ ? ] 個あつまると 5/6 」
-    questionText: (unitFrac, targetFrac) => `${unitFrac} が <span class="blank">?</span> 個あつまると ${targetFrac}`,
-    answer: "5",
-    choices: ["3", "4", "5", "6"]
-  },
-  {
-    totalParts: 3,
-    activeParts: 3,
-    // 「 1/3 が 3 個で 1（ 3/3 ）」
-    questionText: (unitFrac, targetFrac) => `${unitFrac} が 3 個で <span class="blank">?</span>`,
-    answer: "3/3",
-    choices: ["1/3", "2/3", "3/3"]
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
-];
+  return array;
+}
 
+// 5問ランダム生成
+function generateQuestions(totalQuestions = 5) {
+  const questions = [];
+  const patternTypes = [1, 2, 3, 4, 5, 6];
+  const modelTypes = ['tape', 'water', 'numberLine']; // 3種のビジュアル
+
+  for (let i = 0; i < totalQuestions; i++) {
+    const den = Math.floor(Math.random() * 7) + 2; // 2..8
+    const num = Math.floor(Math.random() * den) + 1; // 1..den
+    const pattern = patternTypes[Math.floor(Math.random() * patternTypes.length)];
+    const model = modelTypes[Math.floor(Math.random() * modelTypes.length)];
+
+    let qObj = { totalParts: den, activeParts: num, pattern: pattern, modelType: model };
+
+    if (pattern === 1) {
+      qObj.questionText = (u, t) => `<div class="question-text">${u} が <span class="blank">?</span> 個で ${t}</div>`;
+      qObj.answer = String(num);
+      let choices = [num];
+      while (choices.length < 4) {
+        let c = Math.floor(Math.random() * den) + 1;
+        if (!choices.includes(c)) choices.push(c);
+      }
+      qObj.choices = shuffle(choices).map(String);
+
+    } else if (pattern === 2) {
+      qObj.questionText = (u, t) => `<div class="question-text">${u} が ${num} 個で <span class="blank">?</span></div>`;
+      qObj.answer = `${num}/${den}`;
+      let choices = [`${num}/${den}`];
+      for (let k = 1; k <= den; k++) {
+        let fracStr = `${k}/${den}`;
+        if (!choices.includes(fracStr)) choices.push(fracStr);
+      }
+      qObj.choices = shuffle(choices);
+
+    } else if (pattern === 3) {
+      qObj.questionText = (u, t) => `<div class="question-text">${t} は <span class="frac"><span class="top">1</span><span class="bottom" style="color:#ff6b6b;font-weight:bold;">?</span></span> が ${num} 個</div>`;
+      qObj.answer = String(den);
+      let choices = [den];
+      let pool = shuffle([2, 3, 4, 5, 6, 7, 8].filter(x => x !== den));
+      while (choices.length < 4 && pool.length > 0) choices.push(pool.pop());
+      qObj.choices = shuffle(choices).map(String);
+
+    } else if (pattern === 4) {
+      qObj.questionText = (u, t) => `<div class="question-text">${t} は <span class="blank">?</span> が ${num} 個</div>`;
+      qObj.answer = `1/${den}`;
+      let choices = [`1/${den}`];
+      let pool = shuffle([2, 3, 4, 5, 6, 7, 8].filter(x => x !== den));
+      while (choices.length < 4 && pool.length > 0) choices.push(`1/${pool.pop()}`);
+      qObj.choices = shuffle(choices);
+
+    } else if (pattern === 5) {
+      // 選択問題
+      qObj.questionText = () => `<div class="question-text">しめされた 大きさは どれかな？</div>`;
+      qObj.answer = `${num}/${den}`;
+      let choicesSet = new Set([`${num}/${den}`]);
+      if (num < den) choicesSet.add(`${num + 1}/${den}`);
+      if (den > 2) choicesSet.add(`${num}/${den - 1}`);
+      if (den - num > 0) choicesSet.add(`${den - num}/${den}`);
+      while (choicesSet.size < 4) {
+        let rD = Math.floor(Math.random() * 7) + 2;
+        let rN = Math.floor(Math.random() * rD) + 1;
+        choicesSet.add(`${rN}/${rD}`);
+      }
+      qObj.choices = shuffle(Array.from(choicesSet));
+
+    } else if (pattern === 6) {
+      // 2ステップ問題
+      qObj.isTwoStep = true;
+      qObj.correctDen = den;
+      qObj.correctNum = num;
+      
+      let denChoices = new Set([den]);
+      let dPool = shuffle([2, 3, 4, 5, 6, 7, 8].filter(x => x !== den));
+      while (denChoices.size < 4) denChoices.add(dPool.pop());
+      qObj.denChoices = shuffle(Array.from(denChoices));
+
+      let numChoices = new Set([num]);
+      let nPool = shuffle([1, 2, 3, 4, 5, 6, 7, 8].filter(x => x !== num && x <= den));
+      while (numChoices.size < Math.min(4, den)) numChoices.add(nPool.pop());
+      qObj.numChoices = shuffle(Array.from(numChoices));
+    }
+
+    questions.push(qObj);
+  }
+  return questions;
+}
+
+let quizData = [];
 let currentIdx = 0;
+let isAnswering = false;
+let stepState = 1; 
+let selectedDen = "?";
+
+function startNewGame() {
+  quizData = generateQuestions(5);
+  currentIdx = 0;
+  document.getElementById('btn-restart').style.display = 'none';
+  loadQuestion();
+}
+
+function renderVisual(q) {
+  const labelEl = document.getElementById('visual-label');
+  const contentEl = document.getElementById('visual-content');
+  contentEl.innerHTML = '';
+
+  const hideUnitText = (q.pattern === 6 || q.pattern === 5);
+
+  if (q.modelType === 'tape') {
+    labelEl.textContent = "１ｍの テープ：";
+    const tape = document.createElement('div');
+    tape.className = 'tape';
+    for (let i = 0; i < q.totalParts; i++) {
+      const part = document.createElement('div');
+      part.className = 'tape-part' + (i < q.activeParts ? ' active' : '');
+      part.innerHTML = hideUnitText ? '' : makeFracHTML(1, q.totalParts);
+      tape.appendChild(part);
+    }
+    contentEl.appendChild(tape);
+
+  } else if (q.modelType === 'water') {
+    labelEl.textContent = "１Ｌ（リットル）の みず：";
+    const beaker = document.createElement('div');
+    beaker.className = 'beaker-outer';
+    for (let i = 0; i < q.totalParts; i++) {
+      const part = document.createElement('div');
+      part.className = 'water-part' + (i < q.activeParts ? ' active' : '');
+      part.innerHTML = hideUnitText ? '' : makeFracHTML(1, q.totalParts) + 'L';
+      beaker.appendChild(part);
+    }
+    contentEl.appendChild(beaker);
+
+  } else if (q.modelType === 'numberLine') {
+    labelEl.textContent = "０から １までの かず：";
+    const container = document.createElement('div');
+    container.className = 'number-line-container';
+    
+    const bar = document.createElement('div');
+    bar.className = 'number-line-bar';
+    
+    // 赤いライン（分数の長さ）
+    const fillPercent = (q.activeParts / q.totalParts) * 100;
+    const fill = document.createElement('div');
+    fill.className = 'number-line-fill';
+    fill.style.width = `${fillPercent}%`;
+    bar.appendChild(fill);
+
+    // 目盛りと数字
+    for (let i = 0; i <= q.totalParts; i++) {
+      const posPercent = (i / q.totalParts) * 100;
+      
+      const tick = document.createElement('div');
+      tick.className = 'number-line-tick';
+      tick.style.left = `${posPercent}%`;
+      bar.appendChild(tick);
+
+      const text = document.createElement('div');
+      text.className = 'number-line-text';
+      text.style.left = `${posPercent}%`;
+
+      if (i === 0) text.textContent = "0";
+      else if (i === q.totalParts) text.textContent = "1";
+      else {
+        text.innerHTML = hideUnitText ? '' : makeFracHTML(i, q.totalParts);
+      }
+      bar.appendChild(text);
+    }
+
+    container.appendChild(bar);
+    contentEl.appendChild(container);
+  }
+}
 
 function loadQuestion() {
+  isAnswering = true;
+  stepState = 1;
+  selectedDen = "?";
+
   const q = quizData[currentIdx];
   document.getElementById('progress').textContent = `だい ${currentIdx + 1} もん / ${quizData.length} もん`;
   document.getElementById('result').textContent = "";
-  document.getElementById('btn-next').style.display = "none";
 
-  // テープ図を描画
-  const tapeEl = document.getElementById('tape');
-  tapeEl.innerHTML = '';
-  for (let i = 0; i < q.totalParts; i++) {
-    const part = document.createElement('div');
-    part.className = 'tape-part' + (i < q.activeParts ? ' active' : '');
-    part.innerHTML = makeFracHTML(1, q.totalParts);
-    tapeEl.appendChild(part);
-  }
+  renderVisual(q);
 
-  // 問題文の作成
-  const unitFracHTML = makeFracHTML(1, q.totalParts);
-  const targetFracHTML = makeFracHTML(q.activeParts, q.totalParts);
-  document.getElementById('question').innerHTML = q.questionText(unitFracHTML, targetFracHTML);
-
-  // 選択肢ボタンを作成
   const choicesEl = document.getElementById('choices');
   choicesEl.innerHTML = '';
-  q.choices.forEach(choice => {
+
+  if (q.isTwoStep) {
+    renderTwoStepUI();
+  } else {
+    const unitFracHTML = makeFracHTML(1, q.totalParts);
+    const targetFracHTML = makeFracHTML(q.activeParts, q.totalParts);
+    document.getElementById('question').innerHTML = q.questionText(unitFracHTML, targetFracHTML);
+
+    q.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'btn-choice';
+      if (choice.includes('/')) {
+        const [n, d] = choice.split('/');
+        btn.innerHTML = makeFracHTML(n, d);
+      } else {
+        btn.textContent = choice;
+      }
+      btn.onclick = () => checkStandardAnswer(choice, q.answer);
+      choicesEl.appendChild(btn);
+    });
+  }
+}
+
+function renderTwoStepUI() {
+  const q = quizData[currentIdx];
+  const qBox = document.getElementById('question');
+  
+  const stepText = stepState === 1 
+    ? "① ぜんぶで なんとうぶん？（ぶんぼ）" 
+    : "② いろがついたのは なんこぶん？（ぶんし）";
+
+  qBox.innerHTML = `
+    <div>${stepText}</div>
+    <div class="builder-box">
+      <div class="builder-part builder-top ${stepState === 2 ? 'builder-target' : ''}">${stepState === 2 ? '?' : '?'}</div>
+      <div class="builder-part builder-bottom ${stepState === 1 ? 'builder-target' : ''}">${selectedDen}</div>
+    </div>
+  `;
+
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+
+  const choicesList = stepState === 1 ? q.denChoices : q.numChoices;
+  choicesList.forEach(val => {
     const btn = document.createElement('button');
     btn.className = 'btn-choice';
-    
-    // 分数表記かどうか判定
-    if (choice.includes('/')) {
-      const [n, d] = choice.split('/');
-      btn.innerHTML = makeFracHTML(n, d);
-    } else {
-      btn.textContent = choice;
-    }
-
-    btn.onclick = () => checkAnswer(choice, q.answer);
+    btn.textContent = val;
+    btn.onclick = () => checkTwoStepAnswer(val);
     choicesEl.appendChild(btn);
   });
 }
 
-function checkAnswer(selected, correct) {
+function checkTwoStepAnswer(val) {
+  if (!isAnswering) return;
+  const q = quizData[currentIdx];
   const resultEl = document.getElementById('result');
+
+  if (stepState === 1) {
+    if (val === q.correctDen) {
+      playSound('step');
+      selectedDen = val;
+      stepState = 2;
+      resultEl.textContent = "⭕️ いいね！ つぎは 分子！";
+      resultEl.style.color = "#2a9d8f";
+      renderTwoStepUI();
+    } else {
+      playSound('incorrect');
+      resultEl.textContent = "❌ おしい！ ぜんぶで いくつに わかれているかな？";
+      resultEl.style.color = "#e76f51";
+    }
+  } else {
+    if (val === q.correctNum) {
+      isAnswering = false;
+      playSound('correct');
+      resultEl.textContent = "⭕️ せいかい！ 大せいこう！";
+      resultEl.style.color = "#2a9d8f";
+
+      const qBox = document.getElementById('question');
+      qBox.innerHTML = `
+        <div>できた！</div>
+        <div class="builder-box">
+          <div class="builder-part builder-top" style="color:#2a9d8f">${val}</div>
+          <div class="builder-part builder-bottom" style="color:#2a9d8f">${selectedDen}</div>
+        </div>
+      `;
+
+      const btns = document.querySelectorAll('.btn-choice');
+      btns.forEach(b => b.disabled = true);
+
+      setTimeout(() => {
+        currentIdx++;
+        if (currentIdx >= quizData.length) showFinalResult();
+        else loadQuestion();
+      }, 1000);
+    } else {
+      playSound('incorrect');
+      resultEl.textContent = "❌ おしい！ いろが ついているのは いくつかな？";
+      resultEl.style.color = "#e76f51";
+    }
+  }
+}
+
+function checkStandardAnswer(selected, correct) {
+  if (!isAnswering) return;
+  const resultEl = document.getElementById('result');
+
   if (selected === correct) {
+    isAnswering = false;
     playSound('correct');
     resultEl.textContent = "⭕️ せいかい！";
     resultEl.style.color = "#2a9d8f";
     
-    // ボタンを無効化して「次へ」を表示
     const btns = document.querySelectorAll('.btn-choice');
     btns.forEach(b => b.disabled = true);
-    document.getElementById('btn-next').style.display = "inline-block";
+
+    setTimeout(() => {
+      currentIdx++;
+      if (currentIdx >= quizData.length) showFinalResult();
+      else loadQuestion();
+    }, 900);
   } else {
     playSound('incorrect');
     resultEl.textContent = "❌ おしい！ もういちど！";
@@ -318,26 +641,17 @@ function checkAnswer(selected, correct) {
   }
 }
 
-function nextQuestion() {
-  currentIdx++;
-  if (currentIdx >= quizData.length) {
-    document.getElementById('progress').textContent = "全問クリア！🎉";
-    document.getElementById('question').innerHTML = "よく がんばりました！<br>たんいぶんすう マスターです！✨";
-    document.getElementById('choices').innerHTML = '';
-    document.getElementById('result').textContent = '';
-    document.getElementById('btn-next').textContent = "もう一度あそぶ 🔄";
-    document.getElementById('btn-next').onclick = () => {
-      currentIdx = 0;
-      document.getElementById('btn-next').textContent = "つぎの問題へ ➔";
-      loadQuestion();
-    };
-  } else {
-    loadQuestion();
-  }
+function showFinalResult() {
+  document.getElementById('progress').textContent = "全問クリア！🎉";
+  document.getElementById('visual-label').textContent = '';
+  document.getElementById('visual-content').innerHTML = '';
+  document.getElementById('question').innerHTML = "ぜんぶ せいかい！<br>ぶんすう マスターです！✨";
+  document.getElementById('choices').innerHTML = '';
+  document.getElementById('result').textContent = '';
+  document.getElementById('btn-restart').style.display = "inline-block";
 }
 
-// 初期化
-loadQuestion();
+startNewGame();
 </script>
 </body>
 </html>
